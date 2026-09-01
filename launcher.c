@@ -2,11 +2,13 @@
 #include <commctrl.h>
 #include <shellapi.h>
 #include <stdio.h>
+#include <string.h>
 #include "config.h"
 #include "resource.h"
 
 static HWND hComboExe, hComboGame;
 static HWND hChkTemp, hChkDev, hChkConsole, hChkNoBorder, hChkWindow, hChkInternal, hChkSteam;
+static HWND hEditCustom;
 
 static int exe_priority(const char *name) {
     const char *prio[] = { "runme.exe", "hl2.exe", "portal2.exe", "left4dead.exe" };
@@ -65,14 +67,73 @@ static void detect_game_folders(void) {
     SendMessageA(hComboGame, CB_SETCURSEL, 0, 0);
 }
 
+static void save_config(HWND hwnd) {
+    char exe[256], game[256], custom[1024];
+    SendMessageA(hComboExe, CB_GETLBTEXT, SendMessageA(hComboExe, CB_GETCURSEL, 0, 0), (LPARAM)exe);
+    SendMessageA(hComboGame, CB_GETLBTEXT, SendMessageA(hComboGame, CB_GETCURSEL, 0, 0), (LPARAM)game);
+    GetWindowTextA(hEditCustom, custom, sizeof(custom));
+
+    FILE *f = fopen("sourcelauncher.txt", "w");
+    if (!f)
+        return;
+    fprintf(f, "exe=%s\n", exe);
+    fprintf(f, "game=%s\n", game);
+    fprintf(f, "tempcontent=%d\n", SendMessageA(hChkTemp, BM_GETCHECK, 0, 0) == BST_CHECKED);
+    fprintf(f, "dev=%d\n", SendMessageA(hChkDev, BM_GETCHECK, 0, 0) == BST_CHECKED);
+    fprintf(f, "console=%d\n", SendMessageA(hChkConsole, BM_GETCHECK, 0, 0) == BST_CHECKED);
+    fprintf(f, "noborder=%d\n", SendMessageA(hChkNoBorder, BM_GETCHECK, 0, 0) == BST_CHECKED);
+    fprintf(f, "window=%d\n", SendMessageA(hChkWindow, BM_GETCHECK, 0, 0) == BST_CHECKED);
+    fprintf(f, "internalbuild=%d\n", SendMessageA(hChkInternal, BM_GETCHECK, 0, 0) == BST_CHECKED);
+    fprintf(f, "steam=%d\n", SendMessageA(hChkSteam, BM_GETCHECK, 0, 0) == BST_CHECKED);
+    fprintf(f, "custom=%s\n", custom);
+    fclose(f);
+}
+
+static void load_config(void) {
+    FILE *f = fopen("sourcelauncher.txt", "r");
+    if (!f)
+        return;
+    char line[2048];
+    while (fgets(line, sizeof(line), f)) {
+        char key[64], val[1024];
+        if (sscanf(line, "%63[^=]=%1023[^\n]", key, val) != 2)
+            continue;
+        if (strcmp(key, "exe") == 0)
+            SendMessageA(hComboExe, WM_SETTEXT, 0, (LPARAM)val);
+        else if (strcmp(key, "game") == 0)
+            SendMessageA(hComboGame, WM_SETTEXT, 0, (LPARAM)val);
+        else if (strcmp(key, "tempcontent") == 0)
+            SendMessageA(hChkTemp, BM_SETCHECK, atoi(val) ? BST_CHECKED : BST_UNCHECKED, 0);
+        else if (strcmp(key, "dev") == 0)
+            SendMessageA(hChkDev, BM_SETCHECK, atoi(val) ? BST_CHECKED : BST_UNCHECKED, 0);
+        else if (strcmp(key, "console") == 0)
+            SendMessageA(hChkConsole, BM_SETCHECK, atoi(val) ? BST_CHECKED : BST_UNCHECKED, 0);
+        else if (strcmp(key, "noborder") == 0)
+            SendMessageA(hChkNoBorder, BM_SETCHECK, atoi(val) ? BST_CHECKED : BST_UNCHECKED, 0);
+        else if (strcmp(key, "window") == 0)
+            SendMessageA(hChkWindow, BM_SETCHECK, atoi(val) ? BST_CHECKED : BST_UNCHECKED, 0);
+        else if (strcmp(key, "internalbuild") == 0)
+            SendMessageA(hChkInternal, BM_SETCHECK, atoi(val) ? BST_CHECKED : BST_UNCHECKED, 0);
+        else if (strcmp(key, "steam") == 0)
+            SendMessageA(hChkSteam, BM_SETCHECK, atoi(val) ? BST_CHECKED : BST_UNCHECKED, 0);
+        else if (strcmp(key, "custom") == 0)
+            SetWindowTextA(hEditCustom, val);
+    }
+    fclose(f);
+}
+
 static void do_run(HWND hwnd) {
     char cmdline[2048];
     char exe[256];
     char game[256];
+    char custom[1024];
     int pos = 0;
 
     SendMessageA(hComboExe, CB_GETLBTEXT, SendMessageA(hComboExe, CB_GETCURSEL, 0, 0), (LPARAM)exe);
     SendMessageA(hComboGame, CB_GETLBTEXT, SendMessageA(hComboGame, CB_GETCURSEL, 0, 0), (LPARAM)game);
+    GetWindowTextA(hEditCustom, custom, sizeof(custom));
+
+    save_config(hwnd);
 
     pos += snprintf(cmdline + pos, sizeof(cmdline) - pos, "\"%s\"", exe);
 
@@ -92,6 +153,8 @@ static void do_run(HWND hwnd) {
         pos += snprintf(cmdline + pos, sizeof(cmdline) - pos, " -internalbuild");
     if (SendMessageA(hChkSteam, BM_GETCHECK, 0, 0) == BST_CHECKED)
         pos += snprintf(cmdline + pos, sizeof(cmdline) - pos, " -steam");
+    if (custom[0])
+        pos += snprintf(cmdline + pos, sizeof(cmdline) - pos, " %s", custom);
 
     STARTUPINFOA si = { sizeof(si) };
     PROCESS_INFORMATION pi = {0};
@@ -119,11 +182,13 @@ static BOOL CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         hChkWindow = GetDlgItem(hwnd, IDC_CHK_WINDOW);
         hChkInternal = GetDlgItem(hwnd, IDC_CHK_INTERNAL);
         hChkSteam = GetDlgItem(hwnd, IDC_CHK_STEAM);
+        hEditCustom = GetDlgItem(hwnd, IDC_EDIT_CUSTOM);
 
         detect_exes();
         detect_game_folders();
         SendMessageA(hChkTemp, BM_SETCHECK, BST_CHECKED, 0);
         SendMessageA(hChkInternal, BM_SETCHECK, BST_CHECKED, 0);
+        load_config();
         return TRUE;
     }
 
