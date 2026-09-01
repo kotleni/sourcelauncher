@@ -10,7 +10,7 @@ RCOBJ = build/sourcelauncher.o
 
 all: $(TARGET)
 
-$(TARGET): $(SRC) $(RCOBJ) resource.h
+$(TARGET): $(SRC) $(RCOBJ) resource.h config.h
 	mkdir -p build
 	$(CC) $(CFLAGS) -o $@ $(SRC) $(RCOBJ) $(LIBS)
 

@@ -127,11 +127,12 @@ static BOOL CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         return TRUE;
     }
 
-    case WM_NOTIFY: {
-        NMHDR *nm = (NMHDR *)lp;
-        if (nm->code == NM_CLICK && nm->idFrom == IDC_SYSLINK_GITHUB) {
-            ShellExecuteA(NULL, "open", "https://github.com/kotleni/sourcelauncher", NULL, NULL, SW_SHOW);
-            return TRUE;
+    case WM_CTLCOLORSTATIC: {
+        HWND hCtl = (HWND)lp;
+        if (GetDlgCtrlID(hCtl) == IDC_SYSLINK_GITHUB) {
+            SetTextColor((HDC)wp, RGB(0, 0, 255));
+            SetBkMode((HDC)wp, TRANSPARENT);
+            return (LRESULT)GetStockObject(HOLLOW_BRUSH);
         }
         break;
     }
@@ -141,6 +142,12 @@ static BOOL CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         case IDC_BTN_RUN:
             do_run(hwnd);
             return TRUE;
+        case IDC_SYSLINK_GITHUB:
+            if (HIWORD(wp) == BN_CLICKED) {
+                ShellExecuteA(NULL, "open", "https://github.com/kotleni/sourcelauncher", NULL, NULL, SW_SHOW);
+                return TRUE;
+            }
+            break;
         case IDCANCEL:
             EndDialog(hwnd, 0);
             return TRUE;
@@ -157,7 +164,7 @@ static BOOL CALLBACK DlgProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR cmdLine, int nShow) {
     (void)hPrev; (void)cmdLine; (void)nShow;
 
-    InitCommonControlsEx(&(INITCOMMONCONTROLSEX){ sizeof(INITCOMMONCONTROLSEX), ICC_STANDARD_CLASSES | ICC_LINK_CLASS });
+    InitCommonControls();
     DialogBoxA(hInst, MAKEINTRESOURCE(IDD_MAIN), NULL, DlgProc);
     return 0;
 }

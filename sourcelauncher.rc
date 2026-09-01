@@ -1,6 +1,6 @@
 #include "resource.h"
 
-IDD_MAIN DIALOG 0, 0, 200, 150
+IDD_MAIN DIALOG 0, 0, 200, 124
 STYLE 0x80C80040
 CAPTION "Source Launcher"
 FONT 8, "MS Shell Dlg"
@@ -20,5 +20,5 @@ BEGIN
 
     DEFPUSHBUTTON   "RUN", IDC_BTN_RUN, 20, 92, 160, 15
 
-CONTROL "<a>https://github.com/kotleni/sourcelauncher</a>", IDC_SYSLINK_GITHUB, "SysLink", 0x00010000, 8, 113, 184, 10
+LTEXT           "https://github.com/kotleni/sourcelauncher", IDC_SYSLINK_GITHUB, 8, 112, 184, 10, 0x101
 END

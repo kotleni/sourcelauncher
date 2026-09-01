@@ -2,6 +2,6 @@
 #define CONFIG_H
 
 #define APP_NAME "Source Launcher"
-#define VERSION  "v1.0.1"
+#define VERSION  "v1.0.2"
 
 #endif
