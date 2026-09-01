@@ -1,0 +1,12 @@
+#define IDD_MAIN         1
+#define IDC_COMBO_EXE    101
+#define IDC_COMBO_GAME   102
+#define IDC_CHK_TEMP     103
+#define IDC_CHK_DEV      104
+#define IDC_CHK_CONSOLE  105
+#define IDC_CHK_NOBORDER 106
+#define IDC_CHK_WINDOW   107
+#define IDC_BTN_RUN      108
+#define IDC_CHK_INTERNAL 109
+#define IDC_CHK_STEAM    110
+#define IDC_SYSLINK_GITHUB 111

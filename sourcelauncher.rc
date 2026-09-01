@@ -1,0 +1,24 @@
+#include "resource.h"
+
+IDD_MAIN DIALOG 0, 0, 200, 150
+STYLE 0x80C80040
+CAPTION "Source Launcher"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LTEXT           "Executable:", -1, 8, 10, 55, 8
+    COMBOBOX        IDC_COMBO_EXE, 65, 8, 127, 100, 0x00210003
+    LTEXT           "-game:", -1, 8, 26, 55, 8
+    COMBOBOX        IDC_COMBO_GAME, 65, 24, 127, 100, 0x00210003
+
+    AUTOCHECKBOX    "-tempcontent", IDC_CHK_TEMP, 8, 44, 58, 10
+    AUTOCHECKBOX    "-dev", IDC_CHK_DEV, 68, 44, 30, 10
+    AUTOCHECKBOX    "-console", IDC_CHK_CONSOLE, 102, 44, 44, 10
+    AUTOCHECKBOX    "-noborder", IDC_CHK_NOBORDER, 148, 44, 44, 10
+    AUTOCHECKBOX    "-window", IDC_CHK_WINDOW, 8, 58, 44, 10
+    AUTOCHECKBOX    "-internalbuild", IDC_CHK_INTERNAL, 56, 58, 70, 10
+    AUTOCHECKBOX    "-steam", IDC_CHK_STEAM, 8, 72, 44, 10
+
+    DEFPUSHBUTTON   "RUN", IDC_BTN_RUN, 20, 92, 160, 15
+
+CONTROL "<a>https://github.com/kotleni/sourcelauncher</a>", IDC_SYSLINK_GITHUB, "SysLink", 0x00010000, 8, 113, 184, 10
+END
